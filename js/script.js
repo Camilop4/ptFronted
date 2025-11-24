@@ -27,6 +27,7 @@ $(document).ready(function() {
             url: weatherApiUrl,
             method: 'GET',
             dataType: 'json',
+            timeout: 10000,
             
             success: function(data) {
                 // Verificar errores (ej: clave inválida o ciudad no encontrada)
