@@ -2,7 +2,7 @@ console.log("Bienvenido a la app del clima!");
 
  	
 $(document).ready(function(){
-    const API_KEY = "14143db0b1afa30703f09ecf1e4eacec"
+    const API_KEY = "9a990d6d44b08e346466f5d460b67d0e"
 
     //Evento de click boton
     $('#search-button').on('click', getWeather);
