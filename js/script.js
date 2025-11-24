@@ -30,35 +30,39 @@ $(document).ready(function() {
             scrollTop: $resultDiv.offset().top 
         }, 500);
 
-        // **************** PASO 1: GEOCODIFICACIÓN (Usando Nominatim, sin clave) ****************
-        const geocodingUrl = `https://nominatim.openstreetmap.org/search?q=${city}&format=json&limit=1`;
+        setTimeout(function() {
+        
+            $resultDiv.html('<p>Buscando coordenadas...</p>'); // Muestra el mensaje aquí
 
-        $.ajax({
-            url: geocodingUrl,
-            method: 'GET',
-            dataType: 'json',
-            
-            success: function(data) {
-                
-                if (data.length === 0) {
-                    $resultDiv.html('<h3>Ciudad no encontrada.</h3>');
-                    return;
+            // **************** PASO 1: GEOCODIFICACIÓN (Usando Nominatim, sin clave) ****************
+            const geocodingUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+
+            $.ajax({
+                url: geocodingUrl,
+                method: 'GET',
+                dataType: 'json',
+                timeout: 15000, 
+                success: function(data) {
+                    if (data.length === 0) {
+                        $resultDiv.html('<h3>Ciudad no encontrada.</h3>');
+                        return;
+                    }
+                    
+                    const lat = data[0].lat;
+                    const lon = data[0].lon;
+                    const locationName = data[0].display_name; 
+                    
+                    getOpenMeteoData(lat, lon, locationName, $resultDiv);
+                },
+                error: function(jqXHR, textStatus) {
+                    const errorMsg = (textStatus === "timeout") 
+                        ? 'El servicio de coordenadas tardó demasiado. Intente de nuevo.'
+                        : 'Error al obtener coordenadas.';
+                    $resultDiv.html(`<h3>Error: ${errorMsg}</h3>`);
                 }
-                
-                // Nominatim devuelve 'lat' y 'lon' como strings
-                const lat = data[0].lat;
-                const lon = data[0].lon;
-
-                // EXTRAEMOS EL NOMBRE COMPLETO DE LA UBICACIÓN DE NOMINATIM
-                const locationName = data[0].display_name;
-                
-                // Continuar al Paso 2
-                getOpenMeteoData(lat, lon, locationName, $resultDiv);
-            },
-            error: function() {
-                $resultDiv.html('<h3>Error al obtener coordenadas.</h3>');
-            }
-        });
+            });
+            
+        }, 0); // El delay de 0 milisegundos fuerza la ejecución asíncrona
     }
 
     // ************************************************
