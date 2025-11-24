@@ -6,16 +6,29 @@ $(document).ready(function() {
     
     $('#search-button').on('click', getWeather); 
 
+    const WMO_CODES = {
+        0: 'Despejado ☀️', 1: 'Mayormente Despejado', 2: 'Parcialmente Nublado 🌥️', 
+        3: 'Nublado ☁️', 45: 'Niebla 🌫️', 48: 'Niebla con Escarcha',
+        51: 'Llovizna Ligera', 61: 'Lluvia Ligera 🌧️', 63: 'Lluvia Moderada',
+        80: 'Chubascos Ligeros', 95: 'Tormenta Eléctrica ⛈️'
+    };
+
     function getWeather() {
         const city = $('#city-input').val().trim(); 
         const $resultDiv = $('#weather-result');
 
         if (city === '') {
-            $resultDiv.html('<h3>Por favor, ingresa una ciudad.</h3>');
+            alert("Por favor, ingresa una ciudad.");
             return;
         }
 
         $resultDiv.html('<p>Buscando coordenadas...</p>');
+
+        // SOLUCIÓN PARA DISPOSITIVOS MÓVILES/CELULARES
+        $('#city-input').blur(); 
+        $('html, body').animate({
+            scrollTop: $resultDiv.offset().top 
+        }, 500);
 
         // **************** PASO 1: GEOCODIFICACIÓN (Usando Nominatim, sin clave) ****************
         const geocodingUrl = `https://nominatim.openstreetmap.org/search?q=${city}&format=json&limit=1`;
@@ -25,19 +38,7 @@ $(document).ready(function() {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
-                // **********************************************
-                // SOLUCIÓN PARA DISPOSITIVOS MÓVILES/CELULARES
-                // **********************************************
                 
-                // 1. Quita el foco del input para evitar scroll indeseado
-                $('#city-input').blur(); 
-                
-                // 2. Desplazarse suavemente al área de resultados
-                $('html, body').animate({
-                    scrollTop: $resultDiv.offset().top 
-                }, 500); // 500ms de animación
-                
-                // **********************************************
                 if (data.length === 0) {
                     $resultDiv.html('<h3>Ciudad no encontrada.</h3>');
                     return;
@@ -46,9 +47,12 @@ $(document).ready(function() {
                 // Nominatim devuelve 'lat' y 'lon' como strings
                 const lat = data[0].lat;
                 const lon = data[0].lon;
+
+                // EXTRAEMOS EL NOMBRE COMPLETO DE LA UBICACIÓN DE NOMINATIM
+                const locationName = data[0].display_name;
                 
                 // Continuar al Paso 2
-                getOpenMeteoData(lat, lon, $resultDiv);
+                getOpenMeteoData(lat, lon, locationName, $resultDiv);
             },
             error: function() {
                 $resultDiv.html('<h3>Error al obtener coordenadas.</h3>');
@@ -59,7 +63,7 @@ $(document).ready(function() {
     // ************************************************
     // PASO 2: OBTENER DATOS DEL CLIMA CON OPEN-METEO
     // ************************************************
-    function getOpenMeteoData(lat, lon, $resultDiv) {
+    function getOpenMeteoData(lat, lon, locationName, $resultDiv) {
         $resultDiv.append('<p>Obteniendo datos del clima...</p>');
         
         // Open-Meteo (sin clave, requiere lat/lon)
@@ -76,7 +80,7 @@ $(document).ready(function() {
                     return;
                 }
                 
-                displayWeather(data, lat, lon, $resultDiv);
+                displayWeather(data, lat, lon, locationName, $resultDiv);
             },
             error: function() {
                 $resultDiv.html('<h3>Error al conectar con la API de Open-Meteo.</h3>');
@@ -87,42 +91,30 @@ $(document).ready(function() {
     // ************************************************
     // FUNCIÓN DE EXTRACCIÓN Y RENDERIZADO
     // ************************************************
-    function displayWeather(data, lat, lon, $resultDiv) {
-    // Tabla de mapeo para traducir el código WMO de Open-Meteo a texto
-    const WMO_CODES = {
-        0: 'Despejado ☀️',
-        1: 'Mayormente Despejado',
-        2: 'Parcialmente Nublado 🌥️',
-        3: 'Nublado ☁️',
-        45: 'Niebla 🌫️',
-        48: 'Niebla con Escarcha',
-        51: 'Llovizna Ligera',
-        61: 'Lluvia Ligera 🌧️',
-        63: 'Lluvia Moderada',
-        80: 'Chubascos Ligeros',
-        95: 'Tormenta Eléctrica ⛈️'
-        // Se pueden añadir más códigos según la necesidad (ver documentación WMO)
-    };
+    function displayWeather(data, locationName, $resultDiv) {
+        
+        const weatherData = data.current_weather; 
+        
+        const temperature = weatherData.temperature;
+        const windspeed = weatherData.windspeed;
+        
+        // CORRECCIÓN FINAL: Accedemos al código WMO y usamos el mapeo
+        const weatherCode = weatherData.weather_code;
+        const description = WMO_CODES[weatherCode] || `Código WMO: ${weatherCode}`; // Si el código no está en la lista, muestra el número.
 
-    const weatherData = data.current_weather; // Acceso directo al objeto
-    
-    // Extracción segura
-    const temperature = weatherData.temperature;
-    const windspeed = weatherData.windspeed;
-    const weatherCode = weatherData.weather_code;
-    
-    // Mapeo de código a descripción; si no se encuentra el código, usa el código numérico.
-    const description = WMO_CODES[weatherCode] || `Código WMO: ${weatherCode}`;
-
-    // Crea el HTML con la información
-    const html = `
-        <h2>Clima Actual (Lat: ${parseFloat(lat).toFixed(2)}, Lon: ${parseFloat(lon).toFixed(2)})</h2>
-        <div class="weather-info">
-            <p>Temperatura: **${temperature}°C**</p>
-            <p>Velocidad del Viento: **${windspeed} km/h**</p>
-            <p>Condición: **${description}**</p>
-        </div>
-    `;
-    $resultDiv.html(html);
-}
+        // Limpiamos el nombre de la ubicación para mostrar solo la ciudad y el país
+        const parts = locationName.split(', ');
+        // Tomamos el primer elemento (ciudad) y el último (país)
+        const cityAndCountry = `${parts[0]}, ${parts[parts.length - 1]}`;
+        
+        const html = `
+            <h2>Clima actual en ${cityAndCountry}</h2>
+            <div class="weather-info">
+                <p>Temperatura: **${temperature}°C**</p>
+                <p>Velocidad del Viento: **${windspeed} km/h**</p>
+                <p>Condición: **${description}**</p>
+            </div>
+        `;
+        $resultDiv.html(html);
+    }
 });
