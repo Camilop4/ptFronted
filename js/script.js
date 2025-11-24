@@ -25,6 +25,19 @@ $(document).ready(function() {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
+                // **********************************************
+                // SOLUCIÓN PARA DISPOSITIVOS MÓVILES/CELULARES
+                // **********************************************
+                
+                // 1. Quita el foco del input para evitar scroll indeseado
+                $('#city-input').blur(); 
+                
+                // 2. Desplazarse suavemente al área de resultados
+                $('html, body').animate({
+                    scrollTop: $resultDiv.offset().top 
+                }, 500); // 500ms de animación
+                
+                // **********************************************
                 if (data.length === 0) {
                     $resultDiv.html('<h3>Ciudad no encontrada.</h3>');
                     return;
