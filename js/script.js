@@ -1,111 +1,70 @@
-console.log("Hola Mundo!");
+console.log("Bienvenido a la app del clima!");
 
  	
-$(document).ready(function(){
-    const API_KEY = "14143db0b1afa30703f09ecf1e4eacec"
+$(document).ready(function() {
+    // ⚠️ ATENCIÓN: Esta clave es la que proporcionaste.
+    const API_KEY = "c519a267c1ad46828ec202236252411"; 
+    
+    // Asumiendo que el ID de tu botón es 'search-button'
+    $('#search-button').on('click', getWeather); 
 
-    //Evento de click boton
-    $('#search-button').on('click', getWeather);
+    function getWeather() {
+        const city = $('#city-input').val().trim(); 
+        const $resultDiv = $('#weather-result');
 
-    //Evento emter
-    //13 codigo de la tecla enter
-    $('#city-input').on('keypress', function(e){
-        if(e.which == 13) {
-            getWeather();
-        }
-    });
-
-    function getWeather(){
-        const city = $('#city-input').val().trim();
-
-        if (city === ""){
-            alert("Por favor, introduce el nombre de una ciudad.");
+        if (city === '') {
+            $resultDiv.html('<h3>Por favor, ingresa una ciudad.</h3>');
             return;
         }
 
-        const $resultDiv = $('#weather-result');
-        $resultDiv.html('<p> Buscando cordenadas para' + city +'...</p>');
+        $resultDiv.html('<p>Buscando datos del clima...</p>');
 
-        //Paso 1 Geocodificacion
-        const geocodinUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`;
-        console.log(geocodinUrl);
+        // URL robusta de WeatherAPI
+        const weatherApiUrl = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(city)}&aqi=no`;
 
+        // **************** LLAMADA AJAX LIMPIA ****************
         $.ajax({
-            url: geocodinUrl,
+            url: weatherApiUrl,
             method: 'GET',
             dataType: 'json',
-            cache: false,
-            crossDomain: true,
-            success: function(data){
-                //Verificamos si se encontraron datos y nos da los resultados
-                if(data.length == 0){
-                    $resultDiv.html('<h3> Ciudad no encontrada </h3>');
+            
+            success: function(data) {
+                // Verificar errores (ej: clave inválida o ciudad no encontrada)
+                if (data.error) {
+                    // Muestra el mensaje de error de la API
+                    $resultDiv.html(`<h3>Error: ${data.error.message}</h3>`);
                     return;
                 }
-
-                //obtenemos las cordenadas de la primera conincidencia
-                const lat = data[0].lat;
-                const lon = data[0].lon;
-
-                console.log("Coordenadas extraídas:", lat, lon); // AÑADE ESTA LÍNEA
-
-                $resultDiv.html('<p> Coordenas obtenidas. Buscando datos del clima...</p>');
-
-                //Obtenemos el los datos del clima
-                getWeatherData(lat, lon, $resultDiv);
+                
+                displayWeather(data, $resultDiv);
             },
-            /*error: function(error){
-                console.error("Error en el API de Geocodificacion: ", error);
-                $resultDiv.html('<h3> Error al obtener las coordenadas. </h3>');
-            }*/
             error: function(jqXHR, textStatus, errorThrown) {
-                // ESTE ES EL BLOQUE QUE ESTÁ SALTANDO ACTUALMENTE
-                console.error("DETALLE DE ERROR EN GEOCODIFICACIÓN:");
-                console.error("jqXHR readyState:", jqXHR.readyState); // Debe ser 0
-                console.error("Estado del Texto:", textStatus); 
-                console.error("Error Lanzado:", errorThrown);
-
-                const errorMessage = `Error de conexión: [${textStatus}]. Revisa tu API Key.`;
-                $resultDiv.html(`<h3>${errorMessage}</h3>`);
+                // Si esto falla, verifica la consola para errores 401 o 403
+                console.error("Fallo en la conexión de la API:", jqXHR.status, textStatus);
+                $resultDiv.html(`<h3>Error ${jqXHR.status}: No se pudo obtener la información.</h3>`);
             }
         });
-
     }
 
-    function getWeatherData(lat, lon, $resultDiv){
-        // units=metric para Celsius, lang=es para resultados en español
-        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=${API_KEY}`;
+    // ************************************************
+    // FUNCIÓN DE EXTRACCIÓN Y RENDERIZADO
+    // ************************************************
+    function displayWeather(data, $resultDiv) {
+        const cityName = data.location.name;
+        const country = data.location.country;
+        
+        const temperature = data.current.temp_c; 
+        const humidity = data.current.humidity;
+        const weatherDescription = data.current.condition.text;
 
-        console.log(weatherUrl);
-
-        $.ajax({
-            url: weatherUrl,
-            method: 'GET',
-            dataType: 'json',
-            success: function(data){
-                //Extraemos datos requeridos
-                const cityName = data.name;
-                const temp = data.main.temp.toFixed(1);
-                const description = data.weather[0].description;
-                const iconCode = data.weather[0].icon;
-
-                // Url para el icono
-                const iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
-
-                //Renderizamos el resultdado
-                const htmlResult = `
-                <h3 style="text-transform: capitalize;"> Clima en ${cityName}</h3
-                <img src="${iconUrl}" alt="${description}">
-                <p>Temperatura: <strong>${temp}°C</strong></p>
-                <p>Condicion: <strong>${description}</strong></p>
-                <p>Sensacion termica: <strong>${data.main.feels_like.toFixed(1)}°C</strong></p>`;
-
-                $resultDiv.html(htmlResult);
-            },
-            error: function(error){
-                console.log("Error al obtener los datos del clima:", error);
-                $resultDiv.html('<h3>Error al obtener los datos del clima.</h3>')
-            }
-        });
+        const html = `
+            <h2>Clima actual en ${cityName}, ${country}</h2>
+            <div class="weather-info">
+                <p>Temperatura: **${temperature}°C**</p>
+                <p>Humedad: **${humidity}%**</p>
+                <p>Condiciones: **${weatherDescription}**</p>
+            </div>
+        `;
+        $resultDiv.html(html);
     }
 });
