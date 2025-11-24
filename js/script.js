@@ -37,9 +37,7 @@ $(document).ready(function() {
             url: geocodingUrl,
             method: 'GET',
             dataType: 'json',
-            headers: {
-            'Accept': 'application/json'
-            },
+            
             success: function(data) {
                 
                 if (data.length === 0) {
@@ -76,9 +74,7 @@ $(document).ready(function() {
             url: openMeteoUrl,
             method: 'GET',
             dataType: 'json',
-            headers: {
-            'Accept': 'application/json'
-            },
+            
             success: function(data) {
                 // Verificar si hay datos
                 if (!data.current_weather) {
