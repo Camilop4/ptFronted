@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>ClimInfo</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-    
+<body class="body">
+    <h1>Iformacion del Clima</h1>
+
+    <form class="search-container">
+        <input type="text" id="city-input" placeholder="Introduce la ciudad...">
+        
+        <button id="search-button">Buscar Clima</button>
+    </form>
+
+    <section id="weather-result">
+        
+    </section>
+
+    <section id="resultados"></section>
+
+    <script src="js/jquery-3.7.1.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
