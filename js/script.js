@@ -1,91 +1,111 @@
 console.log("Bienvenido a la app del clima!");
 
  	
-$(document).ready(function() {
-    // *** ¡NO NECESITAMOS API_KEY! ***
-    
-    $('#search-button').on('click', getWeather); 
+$(document).ready(function(){
+    const API_KEY = "14143db0b1afa30703f09ecf1e4eacec"
 
-    function getWeather() {
-        const city = $('#city-input').val().trim(); 
-        const $resultDiv = $('#weather-result');
+    //Evento de click boton
+    $('#search-button').on('click', getWeather);
 
-        if (city === '') {
-            $resultDiv.html('<h3>Por favor, ingresa una ciudad.</h3>');
+    //Evento emter
+    //13 codigo de la tecla enter
+    $('#city-input').on('keypress', function(e){
+        if(e.which == 13) {
+            getWeather();
+        }
+    });
+
+    function getWeather(){
+        const city = $('#city-input').val().trim();
+
+        if (city === ""){
+            alert("Por favor, introduce el nombre de una ciudad.");
             return;
         }
 
-        $resultDiv.html('<p>Buscando coordenadas...</p>');
+        const $resultDiv = $('#weather-result');
+        $resultDiv.html('<p> Buscando cordenadas para' + city +'...</p>');
 
-        // **************** PASO 1: GEOCODIFICACIÓN (Usando Nominatim, sin clave) ****************
-        const geocodingUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+        //Paso 1 Geocodificacion
+        const geocodinUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`;
+        console.log(geocodinUrl);
 
         $.ajax({
-            url: geocodingUrl,
+            url: geocodinUrl,
             method: 'GET',
             dataType: 'json',
-            success: function(data) {
-                if (data.length === 0) {
-                    $resultDiv.html('<h3>Ciudad no encontrada.</h3>');
+            cache: false,
+            crossDomain: true,
+            success: function(data){
+                //Verificamos si se encontraron datos y nos da los resultados
+                if(data.length == 0){
+                    $resultDiv.html('<h3> Ciudad no encontrada </h3>');
                     return;
                 }
-                
-                // Nominatim devuelve 'lat' y 'lon' como strings
+
+                //obtenemos las cordenadas de la primera conincidencia
                 const lat = data[0].lat;
                 const lon = data[0].lon;
-                
-                // Continuar al Paso 2
-                getOpenMeteoData(lat, lon, $resultDiv);
+
+                console.log("Coordenadas extraídas:", lat, lon); // AÑADE ESTA LÍNEA
+
+                $resultDiv.html('<p> Coordenas obtenidas. Buscando datos del clima...</p>');
+
+                //Obtenemos el los datos del clima
+                getWeatherData(lat, lon, $resultDiv);
             },
-            error: function() {
-                $resultDiv.html('<h3>Error al obtener coordenadas.</h3>');
+            /*error: function(error){
+                console.error("Error en el API de Geocodificacion: ", error);
+                $resultDiv.html('<h3> Error al obtener las coordenadas. </h3>');
+            }*/
+            error: function(jqXHR, textStatus, errorThrown) {
+                // ESTE ES EL BLOQUE QUE ESTÁ SALTANDO ACTUALMENTE
+                console.error("DETALLE DE ERROR EN GEOCODIFICACIÓN:");
+                console.error("jqXHR readyState:", jqXHR.readyState); // Debe ser 0
+                console.error("Estado del Texto:", textStatus); 
+                console.error("Error Lanzado:", errorThrown);
+
+                const errorMessage = `Error de conexión: [${textStatus}]. Revisa tu API Key.`;
+                $resultDiv.html(`<h3>${errorMessage}</h3>`);
             }
         });
+
     }
 
-    // ************************************************
-    // PASO 2: OBTENER DATOS DEL CLIMA CON OPEN-METEO
-    // ************************************************
-    function getOpenMeteoData(lat, lon, $resultDiv) {
-        $resultDiv.append('<p>Obteniendo datos del clima...</p>');
-        
-        // Open-Meteo (sin clave, requiere lat/lon)
-        const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius&timezone=auto`;
+    function getWeatherData(lat, lon, $resultDiv){
+        // units=metric para Celsius, lang=es para resultados en español
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=${API_KEY}`;
+
+        console.log(weatherUrl);
 
         $.ajax({
-            url: openMeteoUrl,
+            url: weatherUrl,
             method: 'GET',
             dataType: 'json',
-            success: function(data) {
-                // Verificar si hay datos
-                if (!data.current_weather) {
-                    $resultDiv.html('<h3>No hay datos climáticos disponibles para esta ubicación.</h3>');
-                    return;
-                }
-                
-                displayWeather(data, lat, lon, $resultDiv);
+            success: function(data){
+                //Extraemos datos requeridos
+                const cityName = data.name;
+                const temp = data.main.temp.toFixed(1);
+                const description = data.weather[0].description;
+                const iconCode = data.weather[0].icon;
+
+                // Url para el icono
+                const iconUrl = `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+                //Renderizamos el resultdado
+                const htmlResult = `
+                <h3 style="text-transform: capitalize;"> Clima en ${cityName}</h3
+                <img src="${iconUrl}" alt="${description}">
+                <p>Temperatura: <strong>${temp}°C</strong></p>
+                <p>Condicion: <strong>${description}</strong></p>
+                <p>Sensacion termica: <strong>${data.main.feels_like.toFixed(1)}°C</strong></p>`;
+
+                $resultDiv.html(htmlResult);
             },
-            error: function() {
-                $resultDiv.html('<h3>Error al conectar con la API de Open-Meteo.</h3>');
+            error: function(error){
+                console.log("Error al obtener los datos del clima:", error);
+                $resultDiv.html('<h3>Error al obtener los datos del clima.</h3>')
             }
         });
-    }
-
-    // ************************************************
-    // FUNCIÓN DE EXTRACCIÓN Y RENDERIZADO
-    // ************************************************
-    function displayWeather(data, lat, lon, $resultDiv) {
-        // La descripción requiere un mapeo del código WMO, pero para simplificar:
-        const description = data.current_weather.weather_code;
-        
-        const html = `
-            <h2>Clima Actual (Lat: ${lat}, Lon: ${lon})</h2>
-            <div class="weather-info">
-                <p>Temperatura: **${data.current_weather.temperature}°C**</p>
-                <p>Velocidad del Viento: **${data.current_weather.windspeed} km/h**</p>
-                <p>Código de Condición: **${description}**</p>
-            </div>
-        `;
-        $resultDiv.html(html);
     }
 });
