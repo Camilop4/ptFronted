@@ -2,7 +2,7 @@ console.log("Hola Mundo!");
 
  	
 $(document).ready(function(){
-    //const API_KEY = "14143db0b1afa30703f09ecf1e4eacec"
+    const API_KEY = "14143db0b1afa30703f09ecf1e4eacec"
 
     //Evento de click boton
     $('#search-button').on('click', getWeather);
@@ -27,7 +27,7 @@ $(document).ready(function(){
         $resultDiv.html('<p> Buscando cordenadas para' + city +'...</p>');
 
         //Paso 1 Geocodificacion
-        const geocodinUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=14143db0b1afa30703f09ecf1e4eacec`;
+        const geocodinUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`;
         console.log(geocodinUrl);
 
         $.ajax({
@@ -74,7 +74,7 @@ $(document).ready(function(){
 
     function getWeatherData(lat, lon, $resultDiv){
         // units=metric para Celsius, lang=es para resultados en español
-        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=14143db0b1afa30703f09ecf1e4eacec`;
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=${API_KEY}`;
 
         console.log(weatherUrl);
 
