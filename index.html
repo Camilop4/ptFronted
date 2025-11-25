@@ -4,24 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClimInfo</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="body">
-    <h1>Iformacion del Clima</h1>
+  <h2>Consulta el clima</h2>
+  <input type="text" id="city" placeholder="Escribe una ciudad">
+  <button id="search">Buscar</button>
 
-    <form class="search-container">
-        <input type="text" id="city-input" placeholder="Introduce la ciudad...">
-        
-        <button id="search-button">Buscar Clima</button>
-    </form>
-
-    <section id="weather-result">
-        
-    </section>
-
-    <section id="resultados"></section>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="js/script.js"></script>
+  <div id="result"></div>
+  <script src="/js/script.js"></script>
 </body>
 </html>
