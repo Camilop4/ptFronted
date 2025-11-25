@@ -38,16 +38,16 @@ El proyecto fue desarrollado como un ejercicio de *frontend* puro, utilizando la
   * **HTML5:** Estructura de la aplicación.
   * **CSS3:** Estilos básicos y diseño de la interfaz.
   * **JavaScript (ES6):** Toda la lógica de la aplicación.
-  * **jQuery 3.x:** Utilizado para simplificar las llamadas AJAX y la manipulación del DOM.
+  * **jQuery 3.x:** Utilizado para simplificar las llamadas GET y la manipulación del DOM.
 
 ### 🌐 APIs Utilizadas
 
-Hemos implementado una robusta arquitectura de doble API para garantizar la fiabilidad sin necesidad de claves de API de pago:
+Hemos implementado una robusta arquitectura de doble API para garantizar la fiabilidad:
 
 | Servicio | Propósito | Protocolo |
 | :--- | :--- | :--- |
-| **Nominatim** (OpenStreetMap) | **Geocodificación:** Convierte el nombre de la ciudad a coordenadas (Latitud y Longitud). | HTTPS |
-| **Open-Meteo** | **Datos del Clima:** Obtiene la información meteorológica actual usando las coordenadas. | HTTPS |
+| **openweathermap.org** | **Geocodificación:** Convierte el nombre de la ciudad a coordenadas (Latitud y Longitud). | HTTPS |
+| **openweathermap.org** | **Datos del Clima:** Obtiene la información meteorológica actual usando las coordenadas. | HTTPS |
 
 -----
 
