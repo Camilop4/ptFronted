@@ -21,7 +21,7 @@ La forma más rápida y sencilla de usar la aplicación es a través del desplie
 
 Puedes acceder a la versión publicada aquí:
 
-> **[Haz Clic Aquí para Abrir WeatherApp](https://www.google.com/search?q=https://camilop4.github.io/ptFronted/)**
+> **[Haz Clic Aquí para Abrir WeatherApp](https://camilop4.github.io/ptFronted/)**
 
 ### ➡️ Instrucciones de Uso
 
